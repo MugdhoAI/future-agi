@@ -4,7 +4,7 @@ import anthropic
 import boto3
 from anthropic import AnthropicBedrock
 from botocore.exceptions import ClientError
-from dsp import LM
+from dspy import LM
 from openai import OpenAI
 
 from agentic_eval.core.utils.model_config import LiteLlmProvider
