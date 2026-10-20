@@ -66,6 +66,9 @@ class OpenRouter(LM):
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
             )
+            if not getattr(completion, "choices", None):
+                raise ValueError("LLM provider returned no choices for basic_request")
+
             try:
                 response = completion.choices[0].message.content
             except Exception as e:
