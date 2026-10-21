@@ -1,11 +1,11 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { render, screen, userEvent } from "src/utils/test-utils";
+import RequestDetailDrawer from "./RequestDetailDrawer";
 
 const { mockDetailState } = vi.hoisted(() => ({
   mockDetailState: { cost: "0.002000", metadata: null },
 }));
-import { render, screen, userEvent } from "src/utils/test-utils";
-import RequestDetailDrawer from "./RequestDetailDrawer";
 
 vi.mock("./hooks/useRequestDetail", () => ({
   default: () => ({
