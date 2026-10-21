@@ -9,7 +9,10 @@ import {
   resolveColumns,
 } from "./columns/columnModel";
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  mockState.data = initialMockData;
+  vi.restoreAllMocks();
+});
 
 const mockState = {
   data: {
@@ -64,6 +67,8 @@ const mockState = {
 vi.mock("./hooks/useRequestLogs", () => ({
   default: () => mockState,
 }));
+
+const initialMockData = mockState.data;
 
 const DEFAULT_LABELS = [
   "Timestamp",
@@ -288,6 +293,52 @@ describe("RequestTable", () => {
           page: "1",
         });
       },
+    );
+  });
+
+  it("labels zero-cost unpriced requests without mislabeling free or custom-priced requests", async () => {
+    const [first, second] = initialMockData.results;
+    mockState.data = {
+      ...initialMockData,
+      results: [
+        {
+          ...first,
+          id: "unpriced-zero",
+          cost: "0",
+          metadata: { ...first.metadata, cost_source: "unpriced" },
+        },
+        {
+          ...second,
+          id: "free-zero",
+          cost: "0",
+          metadata: null,
+        },
+        {
+          ...second,
+          id: "custom-zero",
+          cost: "0",
+          metadata: { cost_source: "org_custom" },
+        },
+        {
+          ...first,
+          id: "priced-unpriced-tag",
+          cost: "0.002",
+          metadata: { ...first.metadata, cost_source: "unpriced" },
+        },
+      ],
+    };
+
+    render(<RequestTable {...baseProps} />);
+
+    const unpricedChip = screen.getByText("Unpriced");
+    expect(unpricedChip).toBeInTheDocument();
+    expect(screen.getAllByText("$0.00")).toHaveLength(2);
+    expect(screen.getByText("$0.00200")).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.hover(unpricedChip);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "No price is set for this model",
     );
   });
 });
