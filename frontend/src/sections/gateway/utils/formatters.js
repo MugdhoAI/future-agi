@@ -34,7 +34,10 @@ export function formatCost(value) {
  */
 export function isUnpriced(log) {
   if (log?.metadata?.cost_source !== "unpriced") return false;
-  if (log.cost == null || (typeof log.cost === "string" && log.cost.trim() === "")) {
+  if (
+    log.cost == null ||
+    (typeof log.cost === "string" && log.cost.trim() === "")
+  ) {
     return true;
   }
   const cost = Number(log.cost);
