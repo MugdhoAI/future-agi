@@ -9,8 +9,6 @@ import {
   resolveColumns,
 } from "./columns/columnModel";
 
-
-
 const mockState = {
   data: {
     results: [
