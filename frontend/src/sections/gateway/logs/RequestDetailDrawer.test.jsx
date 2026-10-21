@@ -1,7 +1,11 @@
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, userEvent } from "src/utils/test-utils";
 import RequestDetailDrawer from "./RequestDetailDrawer";
+
+const { mockDetailState } = vi.hoisted(() => ({
+  mockDetailState: { cost: "0.002000", metadata: null },
+}));
 
 vi.mock("./hooks/useRequestDetail", () => ({
   default: () => ({
@@ -15,7 +19,8 @@ vi.mock("./hooks/useRequestDetail", () => ({
         latency_ms: 789,
         input_tokens: 30,
         output_tokens: 40,
-        cost: "0.002000",
+        cost: mockDetailState.cost,
+        metadata: mockDetailState.metadata,
         started_at: "2026-05-21T10:02:00Z",
         is_stream: true,
         cache_hit: true,
@@ -47,6 +52,11 @@ vi.mock("../guardrails/FeedbackWidget", () => ({
   default: () => <div>Feedback widget</div>,
 }));
 
+afterEach(() => {
+  mockDetailState.cost = "0.002000";
+  mockDetailState.metadata = null;
+});
+
 describe("RequestDetailDrawer", () => {
   it("renders canonical snake_case details and exposes guardrail tab", async () => {
     render(
@@ -67,5 +77,34 @@ describe("RequestDetailDrawer", () => {
     expect(screen.getByText(/warned/)).toBeInTheDocument();
     expect(screen.getByText("pii")).toBeInTheDocument();
     expect(screen.getByText("Latency: 12ms")).toBeInTheDocument();
+  });
+
+  it("shows the Unpriced chip and tooltip for a zero-cost unpriced request", async () => {
+    mockDetailState.cost = "0";
+    mockDetailState.metadata = { cost_source: "unpriced" };
+
+    render(
+      <RequestDetailDrawer open logId="log-detail-id" onClose={vi.fn()} />,
+    );
+
+    const unpricedChip = screen.getByText("Unpriced");
+    expect(unpricedChip).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.hover(unpricedChip);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "No price is set for this model",
+    );
+  });
+
+  it("shows a non-zero recorded cost even when metadata says unpriced", () => {
+    mockDetailState.cost = "0.005";
+    mockDetailState.metadata = { cost_source: "unpriced" };
+
+    render(
+      <RequestDetailDrawer open logId="log-detail-id" onClose={vi.fn()} />,
+    );
+
+    expect(screen.getByText("$0.00500")).toBeInTheDocument();
+    expect(screen.queryByText("Unpriced")).not.toBeInTheDocument();
   });
 });
