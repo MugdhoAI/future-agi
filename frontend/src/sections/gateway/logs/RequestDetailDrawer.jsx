@@ -28,7 +28,11 @@ import { LoadingScreen } from "src/components/loading-screen";
 import Iconify from "src/components/iconify";
 import useRequestDetail from "./hooks/useRequestDetail";
 import FeedbackWidget from "../guardrails/FeedbackWidget";
-import { formatCost } from "../utils/formatters";
+import {
+  formatCost,
+  isUnpriced,
+  UNPRICED_COST_TOOLTIP,
+} from "../utils/formatters";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -598,9 +602,20 @@ const RequestDetailDrawer = ({ logId, open, onClose }) => {
             <Typography variant="caption" color="text.secondary">
               Cost
             </Typography>
-            <Typography variant="body2" fontWeight={600}>
-              {formatCost(log.cost)}
-            </Typography>
+            {isUnpriced(log) ? (
+              <Tooltip title={UNPRICED_COST_TOOLTIP} arrow>
+                <Chip
+                  label="Unpriced"
+                  size="small"
+                  variant="outlined"
+                  sx={{ mt: 0.5 }}
+                />
+              </Tooltip>
+            ) : (
+              <Typography variant="body2" fontWeight={600}>
+                {formatCost(log.cost)}
+              </Typography>
+            )}
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">
