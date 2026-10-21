@@ -321,6 +321,12 @@ describe("RequestTable", () => {
         },
         {
           ...first,
+          id: "unpriced-empty",
+          cost: "",
+          metadata: { ...first.metadata, cost_source: "unpriced" },
+        },
+        {
+          ...first,
           id: "priced-unpriced-tag",
           cost: "0.002",
           metadata: { ...first.metadata, cost_source: "unpriced" },
@@ -330,13 +336,13 @@ describe("RequestTable", () => {
 
     render(<RequestTable {...baseProps} />);
 
-    const unpricedChip = screen.getByText("Unpriced");
-    expect(unpricedChip).toBeInTheDocument();
+    const unpricedChips = screen.getAllByText("Unpriced");
+    expect(unpricedChips).toHaveLength(2);
     expect(screen.getAllByText("$0.00")).toHaveLength(2);
     expect(screen.getByText("$0.00200")).toBeInTheDocument();
 
     const user = userEvent.setup();
-    await user.hover(unpricedChip);
+    await user.hover(unpricedChips[0]);
     expect(await screen.findByRole("tooltip")).toHaveTextContent(
       "No price is set for this model",
     );
