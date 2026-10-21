@@ -28,6 +28,22 @@ export function formatCost(value) {
   return "$0.00";
 }
 
+/**
+ * Whether a request is unpriced rather than genuinely free.
+ * A non-zero recorded cost takes precedence over the unpriced metadata tag.
+ */
+export function isUnpriced(log) {
+  if (log?.metadata?.cost_source !== "unpriced") return false;
+  if (log.cost == null || (typeof log.cost === "string" && log.cost.trim() === "")) {
+    return true;
+  }
+  const cost = Number(log.cost);
+  return Number.isFinite(cost) && cost === 0;
+}
+
+export const UNPRICED_COST_TOOLTIP =
+  "No price is set for this model, so this request was recorded without a cost and isn't counted against budgets. Add a price for the model to track it.";
+
 // Axis ticks sit on round values, so zeros past the cents only widen the label
 export function formatCostTick(value) {
   return formatCost(value).replace(/(\.\d{2}\d*?)0+$/, "$1");
